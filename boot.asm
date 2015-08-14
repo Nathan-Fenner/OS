@@ -1,14 +1,34 @@
+; Simple boot: Loads other sectors into memory and jumps to them.
 [org 0x7c00]
-
-; A simple boot sector that prints a message.
 
 mov bx, HELLO
 call print_string
 
+mov [BOOT_DRIVE], dl
+mov bp, 0x8000 ; Move stack elsewhere
+mov sp, bp
+
+
+mov bx, 0x9000 ; (es:bx) is memory location to write to
+mov dh, 5 ; read 5 sectors from disk
+mov dl, [BOOT_DRIVE] ; read from boot drive
+call disk_load
+
+; [0x9000] now contains the loaded memory, starting at sector after us
+
+mov bx, 0x9000
+call print_string ; expect "second"
+
+
+call disk_load
+mov bx, LOADED
+call print_string
 jmp $
 
-HELLO:
-db "Hi there!", 0
+HELLO: db "Booting", 0
+LOADED: db "Disk loaded", 0
+
+BOOT_DRIVE: db 0
 
 %include "print_string.asm"
 
@@ -31,7 +51,7 @@ disk_load:
 	ret
 
 disk_error:
-	mov bx , DISK_ERROR_MSG
+	mov bx, DISK_ERROR_MSG
 	call print_string
 	jmp $
 
@@ -39,5 +59,15 @@ disk_error:
 DISK_ERROR_MSG: db " Disk read error !" , 0
 
 ; Padding + magic boot number
-times 510-($-$$) db 0
+times 510 - ($ - $$) db 0
 dw 0xaa55 ; magic number
+
+; Becomes address 9000
+db "second", 0
+
+times 512 db 0
+times 512 db 0
+times 512 db 0
+times 512 db 0
+times 512 db 0
+times 512 db 0
