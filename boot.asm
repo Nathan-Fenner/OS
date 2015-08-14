@@ -19,10 +19,9 @@ call disk_load
 mov bx, 0x9000
 call print_string ; expect "second"
 
-
-call disk_load
 mov bx, LOADED
 call print_string
+
 jmp $
 
 HELLO: db "Booting", 0
