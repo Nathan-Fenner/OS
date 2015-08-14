@@ -1,3 +1,5 @@
+[org 0x7c00]
+
 ; A simple boot sector that prints a message.
 mov ah, 0x0e ; Enter teletype mode for interrupt 0x10
 
